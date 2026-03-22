@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>特殊選才潛能模擬評估</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.3);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-2xl mx-auto glass-card rounded-3xl shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-indigo-600 p-8 text-white text-center">
+            <h1 class="text-3xl font-bold mb-2">特殊選才潛力評估</h1>
+            <p class="opacity-90">分析你的「怪才指標」，探索你的升學優勢</p>
+        </div>
+
+        <!-- 進度條 -->
+        <div id="progress-container" class="hidden flex justify-between px-8 py-4 bg-slate-50 border-b border-slate-100 overflow-x-auto">
+            <!-- 動態生成進度點 -->
+        </div>
+
+        <!-- 內容容器 -->
+        <div class="p-8">
+            
+            <!-- Step 0: Welcome -->
+            <div id="step-welcome" class="step-content active text-center space-y-6">
+                <div class="bg-indigo-50 p-6 rounded-2xl inline-block">
+                    <div class="text-4xl mb-4">💡</div>
+                    <h2 class="text-xl font-semibold mb-2 text-indigo-900">什麼是特殊選才？</h2>
+                    <p class="text-slate-600 text-sm leading-relaxed text-left">
+                        特殊選才不看學測成績，專門招收具備特定領域長才、特殊生命經歷或弱勢背景的學生。這是一場關於「你是誰」而非「你考幾分」的評比。
+                    </p>
+                </div>
+                <button onclick="goToStep('identity')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition duration-200 shadow-lg">
+                    開始模擬評估
+                </button>
+            </div>
+
+            <!-- Step 1: Identity -->
+            <div id="step-identity" class="step-content space-y-6">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">👤 你目前的學生身分？</h3>
+                <div class="grid gap-3">
+                    <button onclick="setAnswer('identity', 'senior-1')" class="option-btn p-4 text-left border-2 border-slate-100 rounded-xl hover:border-indigo-200 transition">高一：探索期 (適合累積經歷)</button>
+                    <button onclick="setAnswer('identity', 'senior-2')" class="option-btn p-4 text-left border-2 border-slate-100 rounded-xl hover:border-indigo-200 transition">高二：關鍵期 (適合衝刺作品)</button>
+                    <button onclick="setAnswer('identity', 'senior-3')" class="option-btn p-4 text-left border-2 border-slate-100 rounded-xl hover:border-indigo-200 transition">高三：決戰期 (適合最後一搏)</button>
+                    <button onclick="setAnswer('identity', 'other')" class="option-btn p-4 text-left border-2 border-slate-100 rounded-xl hover:border-indigo-200 transition">非應屆/其他 (多元背景加分)</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Academic -->
+            <div id="step-academic" class="step-content space-y-8">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">📚 學業表現分析</h3>
+                <div class="space-y-4">
+                    <label class="block font-medium">1. 在校總體成績排名 (1=墊底, 100=頂尖)</label>
+                    <input type="range" id="range-grades" min="1" max="100" value="50" oninput="updateRangeLabel('grades')">
+                    <div class="flex justify-between text-sm text-slate-500">
+                        <span>不理想</span>
+                        <span id="label-grades" class="font-bold text-indigo-600">50%</span>
+                        <span>全校頂尖</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <label class="block font-medium">2. 偏科嚴重程度 (1=平均發展, 100=某科極強)</label>
+                    <input type="range" id="range-unbalanced" min="1" max="100" value="50" oninput="updateRangeLabel('unbalanced')">
+                    <div class="flex justify-between text-sm text-slate-500">
+                        <span>均衡發展</span>
+                        <span id="label-unbalanced" class="font-bold text-indigo-600">50%</span>
+                        <span>極端偏科</span>
+                    </div>
+                </div>
+                <button onclick="saveRangeAndNext(['grades', 'unbalanced'], 'specialty')" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-md">下一步</button>
+            </div>
+
+            <!-- Step 3: Specialty -->
+            <div id="step-specialty" class="step-content space-y-8">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">🏆 特殊專長與經歷</h3>
+                <div class="space-y-4">
+                    <label class="block font-medium">1. 你的特殊專長強度 (全國賽、奧賽、發明等)</label>
+                    <input type="range" id="range-talent" min="1" max="100" value="50" oninput="updateRangeLabel('talent')">
+                    <div class="flex justify-between text-sm text-slate-500">
+                        <span>興趣階段</span>
+                        <span id="label-talent" class="font-bold text-indigo-600">50%</span>
+                        <span>專業競賽級</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <label class="block font-medium">2. 過人經歷豐富度 (創業、公益、特殊歷程)</label>
+                    <input type="range" id="range-experience" min="1" max="100" value="50" oninput="updateRangeLabel('experience')">
+                    <div class="flex justify-between text-sm text-slate-500">
+                        <span>普通活動</span>
+                        <span id="label-experience" class="font-bold text-indigo-600">50%</span>
+                        <span>獨一無二</span>
+                    </div>
+                </div>
+                <button onclick="saveRangeAndNext(['talent', 'experience'], 'softskills')" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-md">下一步</button>
+            </div>
+
+            <!-- Step 4: Soft Skills -->
+            <div id="step-softskills" class="step-content space-y-8">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">🎙️ 面試軟實力</h3>
+                <div class="space-y-4">
+                    <label class="block font-medium">口才與表達能力 (面試時的邏輯與說服力)</label>
+                    <input type="range" id="range-eloquence" min="1" max="100" value="50" oninput="updateRangeLabel('eloquence')">
+                    <div class="flex justify-between text-sm text-slate-500">
+                        <span>詞不達意</span>
+                        <span id="label-eloquence" class="font-bold text-indigo-600">50%</span>
+                        <span>辯論演講級</span>
+                    </div>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-sm text-yellow-800 italic">
+                    💡 特選面試非常吃個人魅力，你能把自己的故事說得動聽嗎？
+                </div>
+                <button onclick="saveRangeAndNext(['eloquence'], 'scenario')" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-md">進入情境模擬</button>
+            </div>
+
+            <!-- Step 5: Scenario -->
+            <div id="step-scenario" class="step-content space-y-6">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">🧠 情境決策判斷</h3>
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                    <p class="font-medium text-slate-800 leading-relaxed">
+                        「你正在進行一項重要的專案，突然發現關鍵數據出錯，且截止日期只剩下 24 小時，你會如何反應？」
+                    </p>
+                </div>
+                <div class="grid gap-3">
+                    <button onclick="setAnswer('scenario', 'active')" class="p-4 text-left border-2 border-slate-100 rounded-xl hover:border-indigo-200 transition">立刻重做！通宵也要找出正確答案並優化 (積極主動)</button>
+                    <button onclick="setAnswer('scenario', 'adapt')" class="p-4 text-left border-2 border-slate-100 rounded-xl hover:border-indigo-200 transition">深呼吸，評估錯誤影響並修正結論，強調學到的經驗 (隨遇而安)</button>
+                    <button onclick="setAnswer('scenario', 'steady')" class="p-4 text-left border-2 border-slate-100 rounded-xl hover:border-indigo-200 transition">尋求外援，聯繫導師或專家，確保交出最穩定的版本 (穩紮穩打)</button>
+                </div>
+            </div>
+
+            <!-- Result Step -->
+            <div id="step-result" class="step-content text-center space-y-8">
+                <div class="relative inline-block">
+                    <svg class="w-48 h-48 rotate-[-90deg]">
+                        <circle cx="96" cy="96" r="80" stroke="#f1f5f9" stroke-width="12" fill="none" />
+                        <circle id="result-circle" cx="96" cy="96" r="80" stroke="#4f46e5" stroke-width="12" fill="none" stroke-dasharray="502.6" stroke-dashoffset="502.6" style="transition: stroke-dashoffset 1.5s ease-out;" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="result-score" class="text-5xl font-extrabold text-slate-800">0%</span>
+                        <span class="text-xs text-slate-400 uppercase tracking-widest mt-1">適合度分數</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-2xl font-bold text-indigo-900">評估分析報告</h3>
+                    <div id="result-analysis" class="bg-indigo-50 p-6 rounded-2xl text-indigo-900 leading-relaxed text-left border border-indigo-100 shadow-sm">
+                        <!-- 動態填充內容 -->
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="text-xs text-slate-500 block mb-1">人格特質標籤</span>
+                        <span id="result-trait" class="font-bold text-indigo-700">-</span>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="text-xs text-slate-500 block mb-1">學力標偏好</span>
+                        <span id="result-academic-style" class="font-bold text-indigo-700">-</span>
+                    </div>
+                </div>
+
+                <button onclick="resetGame()" class="flex items-center justify-center gap-2 w-full text-slate-500 hover:text-indigo-600 font-medium py-4 transition">
+                    重新進行評估
+                </button>
+            </div>
+
+        </div>
+        
+        <!-- Footer -->
+        <div class="bg-slate-50 p-4 text-center border-t border-slate-100 text-[10px] text-slate-400 uppercase tracking-widest">
+            此為模擬評估系統 · 實際錄取依各大學招生簡章為準
+        </div>
+    </div>
+
+    <script>
+        let userData = {
+            identity: '',
+            grades: 50,
+            unbalanced: 50,
+            talent: 50,
+            experience: 50,
+            eloquence: 50,
+            scenario: ''
+        };
+
+        const stages = [
+            { id: 'identity', label: '身分' },
+            { id: 'academic', label: '學業' },
+            { id: 'specialty', label: '專長' },
+            { id: 'softskills', label: '軟實力' },
+            { id: 'scenario', label: '情境' }
+        ];
+
+        function initProgress() {
+            const container = document.getElementById('progress-container');
+            container.innerHTML = stages.map((s, idx) => `
+                <div class="flex flex-col items-center mx-2 min-w-[60px]" id="nav-${s.id}">
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center mb-1 bg-slate-200 text-slate-500 text-[10px] font-bold">
+                        ${idx + 1}
+                    </div>
+                    <span class="text-xs font-medium text-slate-400">${s.label}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateProgress(currentId) {
+            stages.forEach(s => {
+                const el = document.getElementById(`nav-${s.id}`);
+                if (!el) return;
+                const circle = el.querySelector('div');
+                const text = el.querySelector('span');
+                if (s.id === currentId) {
+                    circle.classList.replace('bg-slate-200', 'bg-indigo-600');
+                    circle.classList.replace('text-slate-500', 'text-white');
+                    text.classList.replace('text-slate-400', 'text-indigo-600');
+                }
+            });
+        }
+
+        function goToStep(stepId) {
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step-${stepId}`).classList.add('active');
+            
+            if (stepId !== 'welcome' && stepId !== 'result') {
+                document.getElementById('progress-container').classList.remove('hidden');
+                updateProgress(stepId);
+            } else {
+                document.getElementById('progress-container').classList.add('hidden');
+            }
+        }
+
+        function setAnswer(key, value) {
+            userData[key] = value;
+            if (key === 'identity') goToStep('academic');
+            if (key === 'scenario') calculateResult();
+        }
+
+        function updateRangeLabel(key) {
+            const val = document.getElementById(`range-${key}`).value;
+            document.getElementById(`label-${key}`).innerText = val + '%';
+        }
+
+        function saveRangeAndNext(keys, nextStep) {
+            keys.forEach(k => {
+                userData[k] = parseInt(document.getElementById(`range-${k}`).value);
+            });
+            goToStep(nextStep);
+        }
+
+        function calculateResult() {
+            let score = 25; // 基礎分
+            
+            // 1. 偏科獎勵 (特選核心：某科極強)
+            const unbalancedBonus = Math.abs(userData.unbalanced - 50) * 0.4;
+            
+            // 2. 專長與經歷 (佔重最高)
+            const talentScore = (userData.talent / 100) * 25;
+            const expScore = (userData.experience / 100) * 25;
+            
+            // 3. 軟實力
+            const eloScore = (userData.eloquence / 100) * 15;
+            
+            // 4. 情境加分
+            let traitName = "";
+            let scenarioBonus = 0;
+            switch(userData.scenario) {
+                case 'active': traitName = "積極主動型"; scenarioBonus = 10; break;
+                case 'adapt': traitName = "韌性適應型"; scenarioBonus = 10; break;
+                case 'steady': traitName = "穩紮穩打型"; scenarioBonus = 7; break;
+            }
+
+            score += unbalancedBonus + talentScore + expScore + eloScore + scenarioBonus;
+            if (userData.identity === 'senior-3') score += 5;
+            
+            const finalScore = Math.min(Math.round(score), 99);
+            
+            // 渲染結果
+            displayResult(finalScore, traitName);
+        }
+
+        function displayResult(score, trait) {
+            goToStep('result');
+            
+            // 動畫效果
+            let currentDisplay = 0;
+            const timer = setInterval(() => {
+                if (currentDisplay >= score) {
+                    clearInterval(timer);
+                } else {
+                    currentDisplay++;
+                    document.getElementById('result-score').innerText = currentDisplay + '%';
+                }
+            }, 20);
+
+            // 圓環動畫
+            const circle = document.getElementById('result-circle');
+            const offset = 502.6 - (502.6 * score / 100);
+            circle.style.strokeDashoffset = offset;
+
+            // 文本分析
+            let analysis = "";
+            if (score >= 85) {
+                analysis = "<strong>「神級怪才」降臨！</strong><br>你的特殊專長極其突出，且具備明確的個人風格，這正是頂尖大學特殊選才夢寐以求的對象。建議現在就開始整理作品集，強化個人品牌。";
+            } else if (score >= 70) {
+                analysis = "<strong>具備極高競爭力！</strong><br>你擁有紮實的特殊經歷，且具備優秀的表達能力。只要能將你的經歷轉化為感人的故事，非常有機會在面試中脫穎而出。";
+            } else if (score >= 55) {
+                analysis = "<strong>具備發展潛能。</strong><br>你的各項指標相對均衡，但在「特選」戰場上可能稍欠缺強烈標籤。建議針對單一領域進行深挖，創造出「非你不可」的理由。";
+            } else {
+                analysis = "<strong>建議多角化評估。</strong><br>目前的數據顯示，你可能更適合「個人申請」或「分科測驗」。若堅持特選，需在短期內累積具備全國性影響力的作品或經歷。";
+            }
+
+            document.getElementById('result-analysis').innerHTML = analysis;
+            document.getElementById('result-trait').innerText = trait;
+            document.getElementById('result-academic-style').innerText = userData.unbalanced > 65 ? "極端專精型" : "多元發展型";
+        }
+
+        function resetGame() {
+            userData = { identity: '', grades: 50, unbalanced: 50, talent: 50, experience: 50, eloquence: 50, scenario: '' };
+            // 重置所有 Range
+            ['grades', 'unbalanced', 'talent', 'experience', 'eloquence'].forEach(k => {
+                const el = document.getElementById(`range-${k}`);
+                if (el) {
+                    el.value = 50;
+                    updateRangeLabel(k);
+                }
+            });
+            goToStep('welcome');
+        }
+
+        // 初始化
+        window.onload = () => {
+            initProgress();
+        };
+    </script>
+</body>
+</html>
